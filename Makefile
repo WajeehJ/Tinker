@@ -3,7 +3,7 @@ CC = gcc
 CFLAGS = -Wall -g
 
 # Output executable name
-TARGET = processor
+TARGET = tinker_executable
 
 # Source files
 SRCS = processor.c object_compiler.c
