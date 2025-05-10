@@ -1,6 +1,6 @@
 #ifndef PROCESSOR_H
-#define PROFESSOR_H
+#define PROCESSOR_H
 
-extern int memory[512 * 1000];  
+extern unsigned char memory[512 * 1000];  
 
 #endif

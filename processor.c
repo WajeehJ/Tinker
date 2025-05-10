@@ -2,11 +2,11 @@
 #include <stdlib.h> 
 #include "object_compiler.h"
 
+unsigned char memory[512 * 1000];
+
 
 int main(int argc, char *argv[]) {
 
-  //initialize memory of the processor 
-  int memory[512 * 1000];
 
   if(argc < 2) {
     printf("Please pass in a file"); 
@@ -14,6 +14,7 @@ int main(int argc, char *argv[]) {
   }
 
   //generate the object file
+  initialize_hashmap();
   parse_file(argv[1]); 
 
   

@@ -6,7 +6,7 @@ CFLAGS = -Wall -g
 TARGET = tinker_executable
 
 # Source files
-SRCS = processor.c object_compiler.c
+SRCS = processor.c object_compiler.c hashmap.c
 
 # Object files (automatically generated from source files)
 OBJS = $(SRCS:.c=.o)
