@@ -6,7 +6,7 @@
 //into its corresponding binary 
 struct comp_to_binary {
   char *comp; 
-  char *binary; 
+  uint8_t binary; 
 };
 
 int initialize_hashmap();
