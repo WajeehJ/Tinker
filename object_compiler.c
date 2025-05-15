@@ -4,6 +4,7 @@
 #include "processor.h" 
 #include "hashmap.h"
 #include "object_compiler.h"
+#include <stdint.h>  // for uint32_t
 
 
 struct hashmap *map; 
@@ -25,27 +26,7 @@ uint64_t comp_hash(const void *item, uint64_t seed0, uint64_t seed1) {
     return hashmap_sip(component->comp, strlen(component->comp), seed0, seed1);
 }
 
-void add_registers_to_map(void *map) {
 
-    // Array of register names
-    const char *registers[] = {
-        "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10",
-        "r11", "r12", "r13", "r14", "r15", "r16", "r17", "r18", "r19", "r20",
-        "r21", "r22", "r23", "r24", "r25", "r26", "r27", "r28", "r29", "r30"
-    };
-
-    // Array of corresponding binary representations
-    const int binary_values[] = {
-      0b00001, 0b00010, 0b00011, 0b00100, 0b00101, 0b00110, 0b00111, 0b01000, 0b01001, 0b01010,
-      0b01011, 0b01100, 0b01101, 0b01110, 0b01111, 0b10000, 0b10001, 0b10010, 0b10011, 0b10100,
-      0b10101, 0b10110, 0b10111, 0b11000, 0b11001, 0b11010, 0b11011, 0b11100, 0b11101, 0b11110
-    };
-
-    // Loop through registers and add to hashmap
-    for (int i = 0; i < 30; i++) {
-        hashmap_set(map, &(struct comp_to_binary){ .comp = registers[i], .binary = binary_values[i] });
-    }
-}
 
 //creates a hashmap that intializes all of the components
 //mapped to their binary representations
@@ -135,7 +116,9 @@ void create_instruction(char *str, int *instruction_val) {
   token = strtok(str, " ");
 
 
-  if(strcmp(token, "add") == 0 || strcmp(token, "sub") == 0) {
+  if(strcmp(token, "add") == 0 || strcmp(token, "sub") == 0 || strcmp(token, "mul") == 0 
+  || strcmp(token, "div") == 0 || strcmp(token, "and") == 0 || strcmp(token, "or") == 0
+  || strcmp(token, "xor") == 0 || strcmp(token, "shftr") == 0 || strcmp(token, "shftl") == 0) {
 
     struct comp_to_binary *comp_test; 
     int comp_binary; 
@@ -175,7 +158,8 @@ void create_instruction(char *str, int *instruction_val) {
       return; 
     }
 
-  } else if(strcmp(token, "addi") == 0) {
+  } else if(strcmp(token, "addi") == 0 || strcmp(token, "subi") == 0 || strcmp(token, "shftri") == 0
+  || strcmp(token, "shftli") == 0) {
 
     struct comp_to_binary *comp_test; 
     int shift_val = 27; 
@@ -231,6 +215,46 @@ void create_instruction(char *str, int *instruction_val) {
       return; 
     }
 
+
+  } else if(strcmp(token, "not") == 0) {
+
+    struct comp_to_binary *comp_test; 
+    int comp_binary; 
+
+    int shift_val = 27; 
+
+    for(int i = 0; i < 3; i++) {
+
+      if(token == NULL) {
+        printf("Error: Invalid Instruction - too few arguments");
+        *instruction_val = 0; 
+        return; 
+      }
+      size_t len = strlen(token);
+      if (len > 0 && token[len - 1] == ',') {
+        token[len - 1] = '\0';  // Remove the comma
+      }
+
+      comp_test = hashmap_get(map, &(struct comp_to_binary){ .comp=token });
+      if(comp_test == NULL) {
+        printf("Error: Unrecognized Instruction Component %s\n", token);
+        *instruction_val = 0;
+        return;  
+      }
+      *instruction_val = *instruction_val | (comp_test->binary << shift_val); 
+
+      shift_val -= 5; 
+
+      // Get the next token
+      token = strtok(NULL, " ");
+
+    }
+
+    if(token != NULL) {
+      printf("Error: Invalid Instruction - too many arguments");
+      *instruction_val = 0;  
+      return; 
+    }
 
   } else {
     printf("Error: Unsupported Instruction"); 

@@ -1,24 +1,33 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -Wall -g
+CFLAGS = -Wall -g -Iinclude
 
-# Output executable name
+# Output executable
 TARGET = tinker_executable
 
-# Source files
+# Root-level source/object files
 SRCS = processor.c object_compiler.c hashmap.c
-
-# Object files (automatically generated from source files)
 OBJS = $(SRCS:.c=.o)
 
-# Default rule: build the target
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+# Subdirectory object files
+PIPELINE_OBJS = pipeline/decode.o
 
-# Rule to compile source files into object files
+# Default rule
+all: pipeline $(TARGET)
+
+# Link everything into the final executable
+$(TARGET): $(OBJS) $(PIPELINE_OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
+
+# Compile root-level .c files into .o
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Clean up object and executable files
+# Trigger subdirectory build
+pipeline:
+	$(MAKE) -C pipeline
+
+# Clean everything
 clean:
+	$(MAKE) -C pipeline clean
 	rm -f $(OBJS) $(TARGET)
