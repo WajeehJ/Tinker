@@ -1,9 +1,11 @@
 #ifndef DECODE_H
 #define DECODE_H
 
+#include "pipe_base.h"
+
 struct binary_to_comp {
   uint8_t binary; 
-  char *comp; 
+  instruction_t instr; 
 };
 
 

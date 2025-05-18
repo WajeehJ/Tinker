@@ -3,8 +3,31 @@
 #include <stdint.h>  // for uint32_t
 #include "object_compiler.h"
 #include "./pipeline/decode.h"
+#include "./pipeline/fetch.h"
+#include "./pipeline/execute.h"
+#include "./pipeline/writeback.h"
+#include "./pipeline/pipe_base.h"
+#include "processor.h" 
 
-unsigned char memory[512 * 1000];
+unsigned char memory[MEMORY_SIZE];
+uint64_t registers[31];
+
+uint32_t read_word(uint32_t addr) {
+    if (addr + 3 >= MEMORY_SIZE) return -1;
+    return (memory[addr] << 24) |
+           (memory[addr + 1] << 16) |
+           (memory[addr + 2] << 8) |
+           (memory[addr + 3]);
+}
+
+uint32_t write_word(uint32_t addr, uint32_t value) {
+    if (addr + 3 >= MEMORY_SIZE) return -1;
+    memory[addr]     = (value >> 24) & 0xFF;
+    memory[addr + 1] = (value >> 16) & 0xFF;
+    memory[addr + 2] = (value >> 8)  & 0xFF;
+    memory[addr + 3] = value & 0xFF;
+    return 0; 
+}
 
 
 int main(int argc, char *argv[]) {
@@ -20,29 +43,17 @@ int main(int argc, char *argv[]) {
   parse_file(argv[1]);
 
 
-  char object_filename[256];           // make sure buffer is large enough
+  program_counter = 0x1000;
+  program_finished = false; 
 
-  snprintf(object_filename, sizeof(object_filename), "%s.obj", argv[1]);
-
-  //read a file 32 bytes at a time 
-  FILE *file = fopen(object_filename, "rb");  // Open file in binary mode
-  if (!file) {
-    perror("Failed to open file");
-    return 1;
+  //pipeline 
+  while(!program_finished) {
+    fetch_instruction(); 
+    decode_instruction();
+    execute_instruction();  
+    writeback(); 
   }
 
-  uint32_t buffer;  // Buffer to hold 32-bit chunks
-
-  while (fread(&buffer, sizeof(uint32_t), 1, file) == 1) {
-    // Process the 32-bit chunk
-  }
-
-  if (!feof(file)) {
-    // If loop exited not because of EOF, print error
-    perror("File read error");
-  }
-
-  fclose(file);
 
 
 

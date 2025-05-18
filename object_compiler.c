@@ -26,6 +26,28 @@ uint64_t comp_hash(const void *item, uint64_t seed0, uint64_t seed1) {
     return hashmap_sip(component->comp, strlen(component->comp), seed0, seed1);
 }
 
+void add_registers_to_map(void *map) {
+
+    // Array of register names
+    const char *registers[] = {
+        "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10",
+        "r11", "r12", "r13", "r14", "r15", "r16", "r17", "r18", "r19", "r20",
+        "r21", "r22", "r23", "r24", "r25", "r26", "r27", "r28", "r29", "r30", "r31"
+    };
+
+    // Array of corresponding binary representations
+    const int binary_values[] = {
+      0b00001, 0b00010, 0b00011, 0b00100, 0b00101, 0b00110, 0b00111, 0b01000, 0b01001, 0b01010,
+      0b01011, 0b01100, 0b01101, 0b01110, 0b01111, 0b10000, 0b10001, 0b10010, 0b10011, 0b10100,
+      0b10101, 0b10110, 0b10111, 0b11000, 0b11001, 0b11010, 0b11011, 0b11100, 0b11101, 0b11110
+    };
+
+    // Loop through registers and add to hashmap
+    for (int i = 0; i < 30; i++) {
+        hashmap_set(map, &(struct comp_to_binary){ .comp = registers[i], .binary = binary_values[i]});
+    }
+}
+
 
 
 //creates a hashmap that intializes all of the components
@@ -54,6 +76,9 @@ int initialize_hashmap() {
   hashmap_set(map, &(struct comp_to_binary){ .comp="shftri", .binary=0b00101 }); 
   hashmap_set(map, &(struct comp_to_binary){ .comp="shftl", .binary=0b00110 }); 
   hashmap_set(map, &(struct comp_to_binary){ .comp="shftli", .binary=0b00111 }); 
+
+
+  hashmap_set(map, &(struct comp_to_binary){ .comp="hlt", .binary=0b11110 }); //1E for HLT 
 
 }
 
@@ -256,6 +281,31 @@ void create_instruction(char *str, int *instruction_val) {
       return; 
     }
 
+  } else if(strcmp(token, "hlt") == 0){
+
+    struct comp_to_binary *comp_test; 
+    int comp_binary; 
+
+    int shift_val = 27;
+
+    comp_test = hashmap_get(map, &(struct comp_to_binary){ .comp=token });
+    if(comp_test == NULL) {
+      printf("Error: Unrecognized Instruction Component %s\n", token);
+      *instruction_val = 0;
+      return;  
+    }
+    *instruction_val = *instruction_val | (comp_test->binary << shift_val);
+    
+    token = strtok(NULL, " ");
+
+    if(token != NULL) {
+      printf("Error: Invalid Instruction - too many arguments");
+      *instruction_val = 0;  
+      return; 
+    }
+    
+
+
   } else {
     printf("Error: Unsupported Instruction"); 
     *instruction_val = 0; 
@@ -265,7 +315,7 @@ void create_instruction(char *str, int *instruction_val) {
 
 }
 
-
+//don't need this anymore but kept around just in case
 int write_int_to_object_file(const char *filename, int32_t value) {
     FILE *f = fopen(filename, "ab"); // append in binary mode
     if (!f) {
@@ -283,49 +333,30 @@ int write_int_to_object_file(const char *filename, int32_t value) {
 
 //purpose of this file is to build a object file that can be executed 
 int parse_file(const char* filename) {
-  char object_filename[256];           // make sure buffer is large enough
-
-  snprintf(object_filename, sizeof(object_filename), "%s.obj", filename);
-  FILE *f = fopen(object_filename, "wb"); // "wb" = write binary
-  if (!f) {
-    perror("Failed to create file");
-    return 1;
-  }
-
-
-
-
-
-
   FILE *fptr = fopen(filename, "r");
 
-  struct comp_to_binary *comp_test; 
+  int program_counter = 0x1000;
 
-
+  char line[100]; 
   //read every line from the file 
-  while(fgets((char *)memory, 100, fptr)) {
+  while(fgets(line, sizeof(line), fptr)) {
 
     //delete new line character 
-    memory[strcspn(memory, "\n")] = '\0';
+    line[strcspn(line, "\n")] = '\0';
     int instruction_val = 0; 
-    create_instruction(memory, &instruction_val);
-    printBinary(instruction_val);
-    if(instruction_val == 0) {
-      printf("true");
-      return; 
-    }
+    create_instruction(line, &instruction_val);
 
-    if (write_int_to_object_file(object_filename, instruction_val) != 0) {
+    if (write_word(program_counter, instruction_val) != 0) {
         fprintf(stderr, "Failed to write instruction\n");
         return 1;
     }
+
+    program_counter += 4; 
   }
 
 
 
   fclose(fptr);
-  fclose(f);
-  
   
 
   

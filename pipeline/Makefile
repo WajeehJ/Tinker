@@ -4,7 +4,7 @@ CC = gcc
 CFLAGS = -I../include -Wall -Wextra -O2
 
 # Source and object files
-SRCS = decode.c
+SRCS = decode.c fetch.c execute.c pipe_base.c writeback.c
 OBJS = $(SRCS:.c=.o)
 
 all: $(OBJS)
