@@ -2,4 +2,6 @@
 #define WRITEBACK_H
 
 
+extern void writeback();
+
 #endif

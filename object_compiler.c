@@ -29,14 +29,14 @@ uint64_t comp_hash(const void *item, uint64_t seed0, uint64_t seed1) {
 void add_registers_to_map(void *map) {
 
     // Array of register names
-    const char *registers[] = {
+    const char *registers[] = { "r0",
         "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10",
         "r11", "r12", "r13", "r14", "r15", "r16", "r17", "r18", "r19", "r20",
-        "r21", "r22", "r23", "r24", "r25", "r26", "r27", "r28", "r29", "r30", "r31"
+        "r21", "r22", "r23", "r24", "r25", "r26", "r27", "r28", "r29", "r30"
     };
 
     // Array of corresponding binary representations
-    const int binary_values[] = {
+    const int binary_values[] = { 0b00000,
       0b00001, 0b00010, 0b00011, 0b00100, 0b00101, 0b00110, 0b00111, 0b01000, 0b01001, 0b01010,
       0b01011, 0b01100, 0b01101, 0b01110, 0b01111, 0b10000, 0b10001, 0b10010, 0b10011, 0b10100,
       0b10101, 0b10110, 0b10111, 0b11000, 0b11001, 0b11010, 0b11011, 0b11100, 0b11101, 0b11110
@@ -78,7 +78,9 @@ int initialize_hashmap() {
   hashmap_set(map, &(struct comp_to_binary){ .comp="shftli", .binary=0b00111 }); 
 
 
-  hashmap_set(map, &(struct comp_to_binary){ .comp="hlt", .binary=0b11110 }); //1E for HLT 
+  hashmap_set(map, &(struct comp_to_binary){ .comp="hlt", .binary=0b11110 }); //1E for HLT
+  hashmap_set(map, &(struct comp_to_binary){ .comp="mov", .binary=0b10001 }); //mov for register to register, movk for immediates
+  hashmap_set(map, &(struct comp_to_binary){ .comp="movk", .binary=0b10010 });
 
 }
 
@@ -143,7 +145,8 @@ void create_instruction(char *str, int *instruction_val) {
 
   if(strcmp(token, "add") == 0 || strcmp(token, "sub") == 0 || strcmp(token, "mul") == 0 
   || strcmp(token, "div") == 0 || strcmp(token, "and") == 0 || strcmp(token, "or") == 0
-  || strcmp(token, "xor") == 0 || strcmp(token, "shftr") == 0 || strcmp(token, "shftl") == 0) {
+  || strcmp(token, "xor") == 0 || strcmp(token, "shftr") == 0 || strcmp(token, "shftl") == 0
+  || strcmp(token, "mov") == 0) {
 
     struct comp_to_binary *comp_test; 
     int comp_binary; 
@@ -154,6 +157,7 @@ void create_instruction(char *str, int *instruction_val) {
 
       if(token == NULL) {
         printf("Error: Invalid Instruction - too few arguments");
+        exit(1);
         *instruction_val = 0; 
         return; 
       }
@@ -165,6 +169,7 @@ void create_instruction(char *str, int *instruction_val) {
       comp_test = hashmap_get(map, &(struct comp_to_binary){ .comp=token });
       if(comp_test == NULL) {
         printf("Error: Unrecognized Instruction Component %s\n", token);
+        exit(1);
         *instruction_val = 0;
         return;  
       }
@@ -179,12 +184,13 @@ void create_instruction(char *str, int *instruction_val) {
 
     if(token != NULL) {
       printf("Error: Invalid Instruction - too many arguments");
+      exit(1);
       *instruction_val = 0;  
       return; 
     }
 
   } else if(strcmp(token, "addi") == 0 || strcmp(token, "subi") == 0 || strcmp(token, "shftri") == 0
-  || strcmp(token, "shftli") == 0) {
+  || strcmp(token, "shftli") == 0 || strcmp(token, "movk") == 0) {
 
     struct comp_to_binary *comp_test; 
     int shift_val = 27; 
@@ -192,6 +198,7 @@ void create_instruction(char *str, int *instruction_val) {
     comp_test = hashmap_get(map, &(struct comp_to_binary){ .comp=token });
     if(comp_test == NULL) {
       printf("Error: Unrecognized Instruction Component %s\n", token);
+      exit(1);
       *instruction_val = 0;
       return;  
     }
@@ -204,6 +211,7 @@ void create_instruction(char *str, int *instruction_val) {
 
     if(token == NULL) {
       printf("Invalid Instruction - too few arguments"); 
+      exit(1);
       *instruction_val = 0; 
       return; 
     }
@@ -216,6 +224,7 @@ void create_instruction(char *str, int *instruction_val) {
     comp_test = hashmap_get(map, &(struct comp_to_binary){ .comp=token });
     if(comp_test == NULL) {
       printf("Error: Unrecognized Instruction Component %s\n", token);
+      exit(1);
       *instruction_val = 0;
       return;  
     }
@@ -226,6 +235,7 @@ void create_instruction(char *str, int *instruction_val) {
 
     if(token == NULL) {
       printf("Invalid Instruction - too few arguments"); 
+      exit(1);
       *instruction_val = 0; 
       return; 
     }
@@ -236,6 +246,7 @@ void create_instruction(char *str, int *instruction_val) {
       *instruction_val = *instruction_val | (literal); 
     } else {
       printf("Error: Unsupported Literal"); 
+      exit(1);
       *instruction_val = 0; 
       return; 
     }
@@ -252,6 +263,7 @@ void create_instruction(char *str, int *instruction_val) {
 
       if(token == NULL) {
         printf("Error: Invalid Instruction - too few arguments");
+        exit(1);
         *instruction_val = 0; 
         return; 
       }
@@ -263,6 +275,7 @@ void create_instruction(char *str, int *instruction_val) {
       comp_test = hashmap_get(map, &(struct comp_to_binary){ .comp=token });
       if(comp_test == NULL) {
         printf("Error: Unrecognized Instruction Component %s\n", token);
+        exit(1);
         *instruction_val = 0;
         return;  
       }
@@ -277,6 +290,7 @@ void create_instruction(char *str, int *instruction_val) {
 
     if(token != NULL) {
       printf("Error: Invalid Instruction - too many arguments");
+      exit(1);
       *instruction_val = 0;  
       return; 
     }
@@ -291,6 +305,7 @@ void create_instruction(char *str, int *instruction_val) {
     comp_test = hashmap_get(map, &(struct comp_to_binary){ .comp=token });
     if(comp_test == NULL) {
       printf("Error: Unrecognized Instruction Component %s\n", token);
+      exit(1);
       *instruction_val = 0;
       return;  
     }
@@ -300,6 +315,7 @@ void create_instruction(char *str, int *instruction_val) {
 
     if(token != NULL) {
       printf("Error: Invalid Instruction - too many arguments");
+      exit(1);
       *instruction_val = 0;  
       return; 
     }
@@ -307,7 +323,8 @@ void create_instruction(char *str, int *instruction_val) {
 
 
   } else {
-    printf("Error: Unsupported Instruction"); 
+    printf("Error: Unsupported Instruction");
+    exit(1);
     *instruction_val = 0; 
     return; 
   }
@@ -329,13 +346,19 @@ int write_int_to_object_file(const char *filename, int32_t value) {
     return written == 1 ? 0 : -1;
 }
 
+void to_lowercase(char *str) {
+  for (int i = 0; str[i]; i++) {
+    str[i] = tolower(str[i]);
+  }
+}
+
 
 
 //purpose of this file is to build a object file that can be executed 
 int parse_file(const char* filename) {
   FILE *fptr = fopen(filename, "r");
 
-  int program_counter = 0x1000;
+  int address  = 0x1000;
 
   char line[100]; 
   //read every line from the file 
@@ -343,15 +366,17 @@ int parse_file(const char* filename) {
 
     //delete new line character 
     line[strcspn(line, "\n")] = '\0';
+    to_lowercase(line);
     int instruction_val = 0; 
     create_instruction(line, &instruction_val);
 
-    if (write_word(program_counter, instruction_val) != 0) {
+    if (write_word(address, instruction_val) != 0) {
         fprintf(stderr, "Failed to write instruction\n");
         return 1;
     }
 
-    program_counter += 4; 
+    address += 4; 
+
   }
 
 

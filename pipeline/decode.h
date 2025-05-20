@@ -8,8 +8,8 @@ struct binary_to_comp {
   instruction_t instr; 
 };
 
-
-extern void decode_instruction(uint32_t instruction);
+extern void initialize_hashmap_decode();
+extern void decode_instruction();
 
 
 #endif

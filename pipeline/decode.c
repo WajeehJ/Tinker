@@ -12,8 +12,9 @@ struct hashmap *binary_map;
 int compare_binary_keys(const void *a, const void *b, void *udata) {
     const struct binary_to_comp *ua = a;
     const struct binary_to_comp *ub = b;
-    return ua->binary == ub->binary;
+    return !(ua->binary == ub->binary); // 0 = equal, non-zero = not equal
 }
+
 
 bool binary_iter(const void *item, void *udata) {
     const struct binary_to_comp *component = item;
@@ -23,7 +24,7 @@ bool binary_iter(const void *item, void *udata) {
 
 uint64_t binary_hash(const void *item, uint64_t seed0, uint64_t seed1) {
     const struct binary_to_comp *component = item;
-    return hashmap_sip(instr_to_string(component->instr), strlen(instr_to_string(component->instr)), seed0, seed1);
+    return hashmap_sip(&component->binary, sizeof(component->binary), seed0, seed1);
 }
 
 
@@ -49,6 +50,8 @@ void initialize_hashmap_decode() {
     hashmap_set(binary_map, &(struct binary_to_comp){ .binary = 0b00111, .instr = SHFTLI });
 
     hashmap_set(binary_map, &(struct binary_to_comp){ .binary = 0b11110, .instr = HLT });
+    hashmap_set(binary_map, &(struct binary_to_comp){ .binary = 0b10001, .instr = MOV });
+    hashmap_set(binary_map, &(struct binary_to_comp){ .binary = 0b10010, .instr = MOVK });
 
     return 0;
 
@@ -58,8 +61,8 @@ void initialize_hashmap_decode() {
 void fetch_registers(instruction_t opcode, uint32_t instruction) {
 
     if(opcode == ADD || opcode == SUB || opcode == MUL || opcode == DIV
-    opcode == AND || opcode == OR || opcode == XOR || opcode == SHFTR 
-    || opcode == SHFTL) {
+    || opcode == AND || opcode == OR || opcode == XOR || opcode == SHFTR 
+    || opcode == SHFTL || opcode == MOV) {
 
         uint8_t store_register = (instruction & 0x07C00000) >> 22; 
         writeback_stage.register_to_writeback = store_register; 
@@ -73,7 +76,7 @@ void fetch_registers(instruction_t opcode, uint32_t instruction) {
         uint8_t second_register = (instruction & 0x0001F000) >> 12; 
         execute_stage.second_register = second_register; 
 
-    } else if(opcode == ADDI || opcode == SUBI || opcode == SHFTR || opcode == SHFTI) {
+    } else if(opcode == ADDI || opcode == SUBI || opcode == SHFTRI || opcode == SHFTLI || opcode == MOVK) {
 
         uint8_t store_register = (instruction & 0x07C00000) >> 22; 
         writeback_stage.register_to_writeback = store_register; 
@@ -85,7 +88,7 @@ void fetch_registers(instruction_t opcode, uint32_t instruction) {
 
         execute_stage.immediate_used = true; 
         uint16_t immediate = (instruction & 0xFFF); 
-        execute_stage.immedate = immediate; 
+        execute_stage.immediate = immediate; 
 
     } else if(opcode == NOT) {
 
@@ -101,7 +104,7 @@ void fetch_registers(instruction_t opcode, uint32_t instruction) {
 
     } else if(opcode == HLT) {
         writeback_stage.write = false; 
-        execute_stage.immedate_used = false; 
+        execute_stage.immediate_used = false; 
     }
 }
 
@@ -144,6 +147,10 @@ operation_t decide_operation(instruction_t opcode) {
         case SHFTLI:
             op = OP_SHFTL;
             break;
+        case MOV:
+        case MOVK:
+            op = OP_MOV; 
+            break; 
         case HLT:
             op = OP_HLT; 
             break; 
@@ -178,9 +185,9 @@ void decode_instruction() {
   //decide operation for thsi instruction 
 
   operation_t op = decide_operation(opcode);
-  execute_instruction.op = op;  
+  execute_stage.op = op;  
 
-  if(op == HLT) {
+  if(op == OP_HLT) {
     program_finished = true; 
   }
 

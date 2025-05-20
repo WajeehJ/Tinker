@@ -2,6 +2,7 @@
 #define PIPE_BASE_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef enum {
     ADD,
@@ -19,6 +20,8 @@ typedef enum {
     SHFTL,
     SHFTLI,
     HLT, 
+    MOV,
+    MOVK,
     INVALID_INSTR  // for error handling or unknown instructions
 } instruction_t;
 
@@ -33,8 +36,9 @@ typedef enum {
   OP_XOR, 
   OP_SHFTL,
   OP_SHFTR,
-  OP_HLT
-} operation_t
+  OP_HLT,
+  OP_MOV
+} operation_t;
 
 typedef struct {
   uint32_t program_counter; 
@@ -67,6 +71,9 @@ typedef struct {
 
 
 extern const char* instr_to_string(instruction_t instr); 
+
+extern void print_pipeline(); 
+extern const char* operation_to_string(operation_t operation); 
 
 extern FetchStage fetch_stage; 
 extern DecodeStage decode_stage; 

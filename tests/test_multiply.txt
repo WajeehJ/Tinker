@@ -1,0 +1,3 @@
+MOVK R2, 5
+MUL R4, R2, R2
+HLT

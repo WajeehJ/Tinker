@@ -1,21 +1,19 @@
 #include "execute.h" 
 #include "pipe_base.h"
 #include "../processor.h"
+#include <stdio.h>
 
 
 void execute_instruction() {
-  if(execute_instruction == HLT) {
-    return; 
-  }
-  int vala = registers[execute_instruction.first_register]; 
+  int vala = registers[execute_stage.first_register]; 
   int valb; 
-  if(execute_instruction.immediate_used) {
-    int valb = execute_instruction.immediate; 
+  if(execute_stage.immediate_used) {
+    valb = execute_stage.immediate; 
   } else {
-    valb = registers[execute_instruction.second_register];
+    valb = registers[execute_stage.second_register];
   }
 
-  writeback_stage.val = alu(vala, valb, execute_instruction.op); 
+  writeback_stage.val = alu(vala, valb, execute_stage.op); 
 }
 
 
@@ -41,6 +39,10 @@ int alu(int vala, int valb, operation_t op) {
       return vala << valb;
     case OP_SHFTR:
       return vala >> valb;
+    case OP_MOV:
+      return valb; 
+    case OP_HLT: 
+      return 0; 
     default:
       // Optional: handle invalid op
       fprintf(stderr, "Unknown operation\n");

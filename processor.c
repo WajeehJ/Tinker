@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h> 
 #include <stdint.h>  // for uint32_t
+#include <stdbool.h>
 #include "object_compiler.h"
 #include "./pipeline/decode.h"
 #include "./pipeline/fetch.h"
@@ -11,6 +12,8 @@
 
 unsigned char memory[MEMORY_SIZE];
 uint64_t registers[31];
+uint32_t program_counter = 0x1000;
+bool program_finished = false; 
 
 uint32_t read_word(uint32_t addr) {
     if (addr + 3 >= MEMORY_SIZE) return -1;
@@ -29,6 +32,13 @@ uint32_t write_word(uint32_t addr, uint32_t value) {
     return 0; 
 }
 
+void print_registers() {
+  for(int i = 0; i < 31; i++) {
+    printf("R%d : ", i); 
+    printf("%ld\n", registers[i]);
+  }
+}
+
 
 int main(int argc, char *argv[]) {
 
@@ -42,9 +52,8 @@ int main(int argc, char *argv[]) {
   initialize_hashmap();
   parse_file(argv[1]);
 
+  initialize_hashmap_decode();
 
-  program_counter = 0x1000;
-  program_finished = false; 
 
   //pipeline 
   while(!program_finished) {
@@ -53,6 +62,8 @@ int main(int argc, char *argv[]) {
     execute_instruction();  
     writeback(); 
   }
+
+  print_registers();
 
 
 
