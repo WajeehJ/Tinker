@@ -1,0 +1,6 @@
+MOVK r1, 4 
+MOVK r2, 2  
+BRRI 4
+ADDI r2, 2 
+ADDI r2, 3 
+HLT

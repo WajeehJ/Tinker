@@ -81,6 +81,11 @@ int initialize_hashmap() {
   hashmap_set(map, &(struct comp_to_binary){ .comp="hlt", .binary=0b11110 }); //1E for HLT
   hashmap_set(map, &(struct comp_to_binary){ .comp="mov", .binary=0b10001 }); //mov for register to register, movk for immediates
   hashmap_set(map, &(struct comp_to_binary){ .comp="movk", .binary=0b10010 });
+  hashmap_set(map, &(struct comp_to_binary){ .comp="br", .binary=0b01000 });
+
+  hashmap_set(map, &(struct comp_to_binary){ .comp="brr", .binary=0b01001 });
+  hashmap_set(map, &(struct comp_to_binary){ .comp="brri", .binary=0b01010 });
+  hashmap_set(map, &(struct comp_to_binary){ .comp="brnz", .binary=0b01011 });
 
 }
 
@@ -141,6 +146,7 @@ void create_instruction(char *str, int *instruction_val) {
 
   //this token must be a opcode 
   token = strtok(str, " ");
+
 
 
   if(strcmp(token, "add") == 0 || strcmp(token, "sub") == 0 || strcmp(token, "mul") == 0 
@@ -252,7 +258,7 @@ void create_instruction(char *str, int *instruction_val) {
     }
 
 
-  } else if(strcmp(token, "not") == 0) {
+  } else if(strcmp(token, "not") == 0 || strcmp(token, "brnz") == 0) {
 
     struct comp_to_binary *comp_test; 
     int comp_binary; 
@@ -320,6 +326,83 @@ void create_instruction(char *str, int *instruction_val) {
       return; 
     }
     
+
+
+  } else if(strcmp(token, "br") == 0 || strcmp(token, "brr") == 0) {
+
+
+    struct comp_to_binary *comp_test; 
+    int comp_binary; 
+
+    int shift_val = 27;
+
+    comp_test = hashmap_get(map, &(struct comp_to_binary){ .comp=token });
+    if(comp_test == NULL) {
+      printf("Error: Unrecognized Instruction Component %s\n", token);
+      exit(1);
+      *instruction_val = 0;
+      return;  
+    }
+    *instruction_val = *instruction_val | (comp_test->binary << shift_val);
+
+    shift_val -= 5; 
+    
+    token = strtok(NULL, " ");
+
+    comp_test = hashmap_get(map, &(struct comp_to_binary){ .comp=token });
+    if(comp_test == NULL) {
+      printf("Error: Unrecognized Instruction Component %s\n", token);
+      exit(1);
+      *instruction_val = 0;
+      return;  
+    }
+    *instruction_val = *instruction_val | (comp_test->binary << shift_val);
+
+    token = strtok(NULL, " ");
+
+    if(token != NULL) {
+      printf("Error: Invalid Instruction - too many arguments");
+      exit(1);
+      *instruction_val = 0;  
+      return; 
+    }
+
+  } else if(strcmp(token, "brri") == 0) {
+
+
+    struct comp_to_binary *comp_test; 
+    int comp_binary; 
+
+    int shift_val = 27;
+
+    comp_test = hashmap_get(map, &(struct comp_to_binary){ .comp=token });
+    if(comp_test == NULL) {
+      printf("Error: Unrecognized Instruction Component %s\n", token);
+      exit(1);
+      *instruction_val = 0;
+      return;  
+    }
+    *instruction_val = *instruction_val | (comp_test->binary << shift_val);
+
+    token = strtok(NULL, " "); 
+
+    if(token == NULL) {
+      printf("Invalid Instruction - too few arguments"); 
+      exit(1);
+      *instruction_val = 0; 
+      return; 
+    }
+
+    int literal; 
+
+    if(parse_literal(token, &literal)) {
+      *instruction_val = *instruction_val | (literal); 
+    } else {
+      printf("Error: Unsupported Literal"); 
+      exit(1);
+      *instruction_val = 0; 
+      return; 
+    }
 
 
   } else {

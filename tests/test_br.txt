@@ -1,0 +1,8 @@
+MOVK r1, 1 
+MOVK r2, 2 
+SHFTLI r1, 12 
+ADDI r1, 0x18 
+BR r1 
+ADDI r2, 2 
+ADDI r2, 3 
+HLT

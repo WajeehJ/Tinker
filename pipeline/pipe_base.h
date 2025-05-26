@@ -22,6 +22,10 @@ typedef enum {
     HLT, 
     MOV,
     MOVK,
+    BR,
+    BRR,
+    BRRI,
+    BRNZ,
     INVALID_INSTR  // for error handling or unknown instructions
 } instruction_t;
 
@@ -37,7 +41,11 @@ typedef enum {
   OP_SHFTL,
   OP_SHFTR,
   OP_HLT,
-  OP_MOV
+  OP_MOV,
+  OP_BR,
+  OP_BRR,
+  OP_BRRI, 
+  OP_BRNZ
 } operation_t;
 
 typedef struct {
@@ -46,6 +54,7 @@ typedef struct {
 
 typedef struct {
   uint32_t instruction; 
+  instruction_t opcode; 
 } DecodeStage; 
 
 typedef struct {

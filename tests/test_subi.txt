@@ -1,0 +1,3 @@
+MOVK R1, 3 
+SUBI R1, 1 
+HLT

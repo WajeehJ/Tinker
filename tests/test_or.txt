@@ -1,0 +1,4 @@
+MOVK R1, 1 
+MOVK R2, 2 
+OR R1, R1, R2
+HLT 

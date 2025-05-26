@@ -1,0 +1,2 @@
+ADDI R1, 3 
+HLT

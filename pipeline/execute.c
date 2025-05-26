@@ -5,15 +5,45 @@
 
 
 void execute_instruction() {
-  int vala = registers[execute_stage.first_register]; 
+
+  int vala; 
   int valb; 
+
+  if(execute_stage.op == OP_HLT) {
+    return; 
+  }
+
+  if(execute_stage.op == OP_BR) {
+    program_counter = registers[execute_stage.first_register];
+    return; 
+  } else if(execute_stage.op == OP_BRR) {
+    vala = program_counter; 
+    valb = registers[execute_stage.first_register]; 
+    program_counter = alu(vala, valb, OP_ADD); 
+    return; 
+  } else if(execute_stage.op == OP_BRRI) {
+    vala = program_counter; 
+    valb = execute_stage.immediate; 
+    program_counter = alu(vala, valb, OP_ADD); 
+    return; 
+  } else if(execute_stage.op == OP_BRNZ) {
+    if(registers[execute_stage.second_register] != 0) {
+      program_counter = registers[execute_stage.first_register];
+    }
+    return; 
+  }
+  vala = registers[execute_stage.first_register]; 
   if(execute_stage.immediate_used) {
     valb = execute_stage.immediate; 
-  } else {
+  } else if(execute_stage.op != OP_BR){
     valb = registers[execute_stage.second_register];
   }
 
-  writeback_stage.val = alu(vala, valb, execute_stage.op); 
+  if(execute_stage.op == OP_MOV) {
+    writeback_stage.val = valb; 
+  } else {
+    writeback_stage.val = alu(vala, valb, execute_stage.op); 
+  }
 }
 
 
@@ -39,10 +69,6 @@ int alu(int vala, int valb, operation_t op) {
       return vala << valb;
     case OP_SHFTR:
       return vala >> valb;
-    case OP_MOV:
-      return valb; 
-    case OP_HLT: 
-      return 0; 
     default:
       // Optional: handle invalid op
       fprintf(stderr, "Unknown operation\n");

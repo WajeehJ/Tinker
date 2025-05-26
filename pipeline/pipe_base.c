@@ -1,4 +1,5 @@
 #include "pipe_base.h"
+#include "../processor.h"
 
 
 FetchStage fetch_stage = {0}; 
@@ -23,6 +24,13 @@ const char* instr_to_string(instruction_t instr) {
         case SHFTRI: return "shftri";
         case SHFTL: return "shftl";
         case SHFTLI: return "shftli";
+        case BR: return "br"; 
+        case BRR: return "brr"; 
+        case BRRI: return "brri"; 
+        case BRNZ: return "brnz"; 
+        case MOV: return "mov"; 
+        case MOVK: return "movk"; 
+        case HLT: return "hlt"; 
         default: return "invalid";
     }
 }
@@ -41,6 +49,10 @@ const char* operation_to_string(operation_t op) {
         case OP_SHFTR: return "SHFTR";
         case OP_HLT:   return "HLT";
         case OP_MOV:   return "MOV";
+        case OP_BR:    return "BR";
+        case OP_BRR:   return "BRR"; 
+        case OP_BRRI:  return "BRRI"; 
+        case OP_BRNZ:  return "BRNZ";
         default:       return "UNKNOWN";
     }
 }
@@ -52,7 +64,7 @@ void print_pipeline() {
 
     // Fetch Stage
     printf("Fetch Stage:\n");
-    printf("  Program Counter: 0x%08X\n", fetch_stage.program_counter);
+    printf("  Program Counter: 0x%08X\n", program_counter);
 
     // Decode Stage
     printf("Decode Stage:\n");

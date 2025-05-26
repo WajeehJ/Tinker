@@ -1,0 +1,4 @@
+MOVK r1, 1
+MOVK r2, 3
+XOR r1, r1, r2 
+HLT

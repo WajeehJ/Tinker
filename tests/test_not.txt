@@ -1,0 +1,3 @@
+MOVK r1, 0xFFF
+NOT r2, r1 
+HLT

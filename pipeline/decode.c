@@ -53,6 +53,11 @@ void initialize_hashmap_decode() {
     hashmap_set(binary_map, &(struct binary_to_comp){ .binary = 0b10001, .instr = MOV });
     hashmap_set(binary_map, &(struct binary_to_comp){ .binary = 0b10010, .instr = MOVK });
 
+    hashmap_set(binary_map, &(struct binary_to_comp){ .binary = 0b01000, .instr = BR });
+    hashmap_set(binary_map, &(struct binary_to_comp){ .binary = 0b01001, .instr = BRR });
+    hashmap_set(binary_map, &(struct binary_to_comp){ .binary = 0b01010, .instr = BRRI });
+    hashmap_set(binary_map, &(struct binary_to_comp){ .binary = 0b01011, .instr = BRNZ });
+
     return 0;
 
 }
@@ -78,11 +83,12 @@ void fetch_registers(instruction_t opcode, uint32_t instruction) {
 
     } else if(opcode == ADDI || opcode == SUBI || opcode == SHFTRI || opcode == SHFTLI || opcode == MOVK) {
 
+
+
         uint8_t store_register = (instruction & 0x07C00000) >> 22; 
         writeback_stage.register_to_writeback = store_register; 
 
-        uint8_t first_register = (instruction & 0x003E0000) >> 17; 
-        execute_stage.first_register = first_register; 
+        execute_stage.first_register = store_register; 
 
         writeback_stage.write = true;  
 
@@ -101,6 +107,38 @@ void fetch_registers(instruction_t opcode, uint32_t instruction) {
         writeback_stage.write = true;  
 
         execute_stage.immediate_used = false; 
+
+    } else if(opcode == BR || opcode == BRR) {
+
+        writeback_stage.write = false; 
+        execute_stage.immediate_used = false; 
+
+        uint8_t first_register = (instruction & 0x07C00000) >> 22; 
+        execute_stage.first_register = first_register;
+
+
+    } else if(opcode == BRRI) {
+
+        writeback_stage.write = false; 
+        execute_stage.immediate_used = false; 
+
+        uint8_t first_register = (instruction & 0x07C00000) >> 22; 
+        execute_stage.first_register = first_register;
+
+        uint16_t immediate = (instruction & 0xFFF); 
+        execute_stage.immediate = immediate; 
+
+    } else if(opcode == BRNZ) {
+
+        writeback_stage.write = false; 
+        execute_stage.immediate_used = false; 
+
+        uint8_t first_register = (instruction & 0x07C00000) >> 22; 
+        execute_stage.first_register = first_register;
+
+        uint8_t second_register = (instruction & 0x003E0000) >> 17; 
+        execute_stage.second_register = second_register; 
+
 
     } else if(opcode == HLT) {
         writeback_stage.write = false; 
@@ -153,6 +191,18 @@ operation_t decide_operation(instruction_t opcode) {
             break; 
         case HLT:
             op = OP_HLT; 
+            break; 
+        case BR: 
+            op = OP_BR; 
+            break;
+        case BRR: 
+            op = OP_BRR;
+            break; 
+        case BRRI: 
+            op = OP_BRRI; 
+            break; 
+        case BRNZ: 
+            op = OP_BRNZ; 
             break; 
         case INVALID_INSTR:
         default:

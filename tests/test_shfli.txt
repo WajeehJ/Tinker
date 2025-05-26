@@ -1,0 +1,3 @@
+MOVK r1, 4 
+SHFTLI r1, 1 
+HLT
