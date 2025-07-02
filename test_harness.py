@@ -2,7 +2,7 @@ import subprocess
 import os
 import difflib
 
-EXECUTABLE = './tinker_executable'  # Change to your program
+EXECUTABLE = './tinker_executable'  
 TEST_DIR = './tests'
 
 def run_test(test_file, expected_file):

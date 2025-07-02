@@ -86,6 +86,14 @@ int initialize_hashmap() {
   hashmap_set(map, &(struct comp_to_binary){ .comp="brr", .binary=0b01001 });
   hashmap_set(map, &(struct comp_to_binary){ .comp="brri", .binary=0b01010 });
   hashmap_set(map, &(struct comp_to_binary){ .comp="brnz", .binary=0b01011 });
+  hashmap_set(map, &(struct comp_to_binary){ .comp="brgt", .binary=0b01110 });
+
+  hashmap_set(map, &(struct comp_to_binary){ .comp="call", .binary=0b01100 });
+  hashmap_set(map, &(struct comp_to_binary){ .comp="ret", .binary=0b01101 });
+
+
+  hashmap_set(map, &(struct comp_to_binary){ .comp="stur", .binary=0b10000 });
+  hashmap_set(map, &(struct comp_to_binary){ .comp="ldur", .binary=0b10011 });
 
 }
 
@@ -152,7 +160,7 @@ void create_instruction(char *str, int *instruction_val) {
   if(strcmp(token, "add") == 0 || strcmp(token, "sub") == 0 || strcmp(token, "mul") == 0 
   || strcmp(token, "div") == 0 || strcmp(token, "and") == 0 || strcmp(token, "or") == 0
   || strcmp(token, "xor") == 0 || strcmp(token, "shftr") == 0 || strcmp(token, "shftl") == 0
-  || strcmp(token, "mov") == 0) {
+  || strcmp(token, "mov") == 0 || strcmp(token, "brgt") == 0) {
 
     struct comp_to_binary *comp_test; 
     int comp_binary; 
@@ -301,7 +309,7 @@ void create_instruction(char *str, int *instruction_val) {
       return; 
     }
 
-  } else if(strcmp(token, "hlt") == 0){
+  } else if(strcmp(token, "hlt") == 0 || strcmp(token, "ret") == 0){
 
     struct comp_to_binary *comp_test; 
     int comp_binary; 
@@ -328,7 +336,7 @@ void create_instruction(char *str, int *instruction_val) {
     
 
 
-  } else if(strcmp(token, "br") == 0 || strcmp(token, "brr") == 0) {
+  } else if(strcmp(token, "br") == 0 || strcmp(token, "brr") == 0 || strcmp(token, "call") == 0) {
 
 
     struct comp_to_binary *comp_test; 
@@ -405,6 +413,10 @@ void create_instruction(char *str, int *instruction_val) {
     }
 
 
+  } else if(strcmp(token, "ldur") == 0 || strcmp(token, "stur") == 0) {
+
+    
+
   } else {
     printf("Error: Unsupported Instruction");
     exit(1);
@@ -446,6 +458,7 @@ int parse_file(const char* filename) {
   char line[100]; 
   //read every line from the file 
   while(fgets(line, sizeof(line), fptr)) {
+
 
     //delete new line character 
     line[strcspn(line, "\n")] = '\0';

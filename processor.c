@@ -7,12 +7,13 @@
 #include "./pipeline/fetch.h"
 #include "./pipeline/execute.h"
 #include "./pipeline/writeback.h"
+#include "./pipeline/memory.h"
 #include "./pipeline/pipe_base.h"
 #include "processor.h" 
 
 unsigned char memory[MEMORY_SIZE];
-uint64_t registers[31];
-uint32_t program_counter = 0x1000;
+uint64_t registers[32];
+uint64_t program_counter = 0x1000;
 bool program_finished = false; 
 
 uint32_t read_word(uint32_t addr) {
@@ -35,7 +36,7 @@ uint32_t write_word(uint32_t addr, uint32_t value) {
 void print_registers() {
   for(int i = 0; i < 31; i++) {
     printf("R%d : ", i); 
-    printf("%ld\n", registers[i]);
+    printf("%llu\n", registers[i]);
   }
 }
 
@@ -47,6 +48,8 @@ int main(int argc, char *argv[]) {
     printf("Please pass in a file"); 
     return -1; 
   }
+
+  registers[31] = MEMORY_SIZE - 1; 
 
   //generate the object file
   initialize_hashmap();
@@ -60,6 +63,7 @@ int main(int argc, char *argv[]) {
     fetch_instruction(); 
     decode_instruction();
     execute_instruction();  
+    memory_operation(); 
     writeback(); 
   }
 

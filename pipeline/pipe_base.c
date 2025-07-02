@@ -28,9 +28,12 @@ const char* instr_to_string(instruction_t instr) {
         case BRR: return "brr"; 
         case BRRI: return "brri"; 
         case BRNZ: return "brnz"; 
+        case CALL: return "call"; 
         case MOV: return "mov"; 
         case MOVK: return "movk"; 
         case HLT: return "hlt"; 
+        case RET: return "ret"; 
+        case BRGT: return "brgt"; 
         default: return "invalid";
     }
 }
@@ -50,9 +53,9 @@ const char* operation_to_string(operation_t op) {
         case OP_HLT:   return "HLT";
         case OP_MOV:   return "MOV";
         case OP_BR:    return "BR";
-        case OP_BRR:   return "BRR"; 
-        case OP_BRRI:  return "BRRI"; 
         case OP_BRNZ:  return "BRNZ";
+        case OP_RET:   return "RET"; 
+        case OP_BRGT:  return "BRGT"; 
         default:       return "UNKNOWN";
     }
 }

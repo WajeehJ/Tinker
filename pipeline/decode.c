@@ -57,6 +57,10 @@ void initialize_hashmap_decode() {
     hashmap_set(binary_map, &(struct binary_to_comp){ .binary = 0b01001, .instr = BRR });
     hashmap_set(binary_map, &(struct binary_to_comp){ .binary = 0b01010, .instr = BRRI });
     hashmap_set(binary_map, &(struct binary_to_comp){ .binary = 0b01011, .instr = BRNZ });
+    hashmap_set(binary_map, &(struct binary_to_comp){ .binary = 0b01110, .instr = BRGT });
+
+    hashmap_set(binary_map, &(struct binary_to_comp){ .binary = 0b01100, .instr = CALL });
+    hashmap_set(binary_map, &(struct binary_to_comp){ .binary = 0b01101, .instr = RET });
 
     return 0;
 
@@ -108,19 +112,42 @@ void fetch_registers(instruction_t opcode, uint32_t instruction) {
 
         execute_stage.immediate_used = false; 
 
-    } else if(opcode == BR || opcode == BRR) {
+    } else if(opcode == BR) {
 
         writeback_stage.write = false; 
         execute_stage.immediate_used = false; 
+        execute_stage.addition_needed = false; 
+        execute_stage.stack_flag = false; 
 
         uint8_t first_register = (instruction & 0x07C00000) >> 22; 
         execute_stage.first_register = first_register;
 
 
-    } else if(opcode == BRRI) {
+    } else if(opcode == CALL) { 
 
         writeback_stage.write = false; 
         execute_stage.immediate_used = false; 
+        execute_stage.addition_needed = false; 
+        execute_stage.stack_flag = true; 
+
+        uint8_t first_register = (instruction & 0x07C00000) >> 22; 
+        execute_stage.first_register = first_register;
+    } else if(opcode == BRR) {
+
+        writeback_stage.write = false; 
+        execute_stage.immediate_used = false; 
+        execute_stage.addition_needed = true; 
+        execute_stage.stack_flag = false; 
+
+        uint8_t first_register = (instruction & 0x07C00000) >> 22; 
+        execute_stage.first_register = first_register;
+
+    } else if(opcode == BRRI) {
+
+        writeback_stage.write = false; 
+        execute_stage.immediate_used = true; 
+        execute_stage.addition_needed = true; 
+        execute_stage.stack_flag = false; 
 
         uint8_t first_register = (instruction & 0x07C00000) >> 22; 
         execute_stage.first_register = first_register;
@@ -131,7 +158,9 @@ void fetch_registers(instruction_t opcode, uint32_t instruction) {
     } else if(opcode == BRNZ) {
 
         writeback_stage.write = false; 
-        execute_stage.immediate_used = false; 
+        execute_stage.immediate_used = false;
+        execute_stage.addition_needed = false; 
+        execute_stage.stack_flag = false;  
 
         uint8_t first_register = (instruction & 0x07C00000) >> 22; 
         execute_stage.first_register = first_register;
@@ -140,7 +169,24 @@ void fetch_registers(instruction_t opcode, uint32_t instruction) {
         execute_stage.second_register = second_register; 
 
 
-    } else if(opcode == HLT) {
+    } else if(opcode == BRGT) {
+
+        writeback_stage.write = false; 
+        execute_stage.immediate_used = false;
+        execute_stage.addition_needed = false; 
+        execute_stage.stack_flag = false;  
+        
+        uint8_t first_register = (instruction & 0x07C00000) >> 22; 
+        execute_stage.first_register = first_register; 
+
+        uint8_t second_register = (instruction & 0x003E0000) >> 17; 
+        execute_stage.second_register = second_register; 
+
+        uint8_t third_register = (instruction & 0x0001F000) >> 12; 
+        execute_stage.third_register = third_register; 
+
+
+    } else if(opcode == HLT || opcode == RET) {
         writeback_stage.write = false; 
         execute_stage.immediate_used = false; 
     }
@@ -193,16 +239,19 @@ operation_t decide_operation(instruction_t opcode) {
             op = OP_HLT; 
             break; 
         case BR: 
+        case BRR: 
+        case BRRI: 
+        case CALL:
             op = OP_BR; 
             break;
-        case BRR: 
-            op = OP_BRR;
-            break; 
-        case BRRI: 
-            op = OP_BRRI; 
-            break; 
         case BRNZ: 
             op = OP_BRNZ; 
+            break; 
+        case BRGT: 
+            op = OP_BRGT; 
+            break; 
+        case RET: 
+            op = OP_RET;
             break; 
         case INVALID_INSTR:
         default:
@@ -215,8 +264,9 @@ operation_t decide_operation(instruction_t opcode) {
 
 void decode_instruction() {
 
-  uint32_t instruction = decode_stage.instruction; 
 
+
+  uint32_t instruction = decode_stage.instruction; 
   struct binary_to_comp *binary_test; 
   //get opcode 
   uint8_t binary_opcode = (instruction & 0xF8000000) >> 27; 
@@ -224,7 +274,6 @@ void decode_instruction() {
 
 
   instruction_t opcode = binary_test->instr; 
-
 
   //now that we have opcode, let's implement the decoding of instructions 
 
@@ -236,6 +285,8 @@ void decode_instruction() {
 
   operation_t op = decide_operation(opcode);
   execute_stage.op = op;  
+
+
 
   if(op == OP_HLT) {
     program_finished = true; 

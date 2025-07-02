@@ -10,7 +10,7 @@ SRCS = processor.c object_compiler.c hashmap.c
 OBJS = $(SRCS:.c=.o)
 
 # Subdirectory object files
-PIPELINE_OBJS = pipeline/decode.o pipeline/fetch.o pipeline/pipe_base.o pipeline/writeback.o pipeline/execute.o
+PIPELINE_OBJS = pipeline/decode.o pipeline/fetch.o pipeline/pipe_base.o pipeline/writeback.o pipeline/execute.o pipeline/memory.o
 
 # Default rule
 all: pipeline $(TARGET)

@@ -1,3 +1,0 @@
-movk r1, 0x1
-add r3, r1, r2
-hlt

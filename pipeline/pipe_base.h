@@ -26,6 +26,9 @@ typedef enum {
     BRR,
     BRRI,
     BRNZ,
+    CALL,
+    RET, 
+    BRGT,
     INVALID_INSTR  // for error handling or unknown instructions
 } instruction_t;
 
@@ -43,9 +46,9 @@ typedef enum {
   OP_HLT,
   OP_MOV,
   OP_BR,
-  OP_BRR,
-  OP_BRRI, 
-  OP_BRNZ
+  OP_BRNZ,
+  OP_BRGT, 
+  OP_RET
 } operation_t;
 
 typedef struct {
@@ -59,14 +62,18 @@ typedef struct {
 
 typedef struct {
   bool immediate_used;
+  bool addition_needed; 
+  bool stack_flag; 
   uint16_t immediate; 
   uint32_t instruction; 
   uint8_t first_register; 
   uint8_t second_register;
+  uint8_t third_register;
   operation_t op;  
 } ExecuteStage; 
 
 typedef struct {
+  bool memory_used; 
   bool read; 
   bool write; 
   uint32_t memory_address; 
@@ -74,7 +81,7 @@ typedef struct {
 
 typedef struct {
   bool write;  //whether or not we will need to writeback
-  uint32_t val; //what value that we will writeback
+  uint64_t val; //what value that we will writeback
   uint32_t register_to_writeback; //register we need to writeback to 
 } WritebackStage; 
 

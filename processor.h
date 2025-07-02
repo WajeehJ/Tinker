@@ -9,9 +9,9 @@ extern unsigned char memory[MEMORY_SIZE];
 
 
 // registers 
-extern uint64_t registers[31]; 
+extern uint64_t registers[32]; 
 
-extern uint32_t program_counter; 
+extern uint64_t program_counter; 
 
 extern bool program_finished; 
 
